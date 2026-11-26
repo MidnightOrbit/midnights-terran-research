@@ -5,7 +5,7 @@
   <dependency version="900" />
   <!-- Required: the main mod (its manifest id = Steam Workshop item 3846306118). XUP, which adds the items, is optional
        so the Steam Workshop accepts this add-on (XUP is not on the Workshop); without XUP every patch skips itself. -->
-  <dependency id="ws_3846306118" version="101" optional="false" />
+  <dependency id="ws_3846306118" optional="false" />
   <dependency id="xup" optional="true" />
   <!-- Optional: XUP's DLC parts add more items; loading after them lets those get recipes too. -->
   <dependency id="xup_dlc_boron" optional="true" />

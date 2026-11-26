@@ -8,7 +8,7 @@ main mod does. Without it, a Terran wharf or shipyard still asks for hull parts 
 Commonwealth wares for XUP's items.
 
 REQUIREMENTS
-  - Midnight's Terran Build Method Plus 1.01 or later
+  - Midnight's Terran Build Method Plus
   - X4 Upgrade Project: https://www.nexusmods.com/x4foundations/mods/2447
 
 Only install this if you use XUP: without it, the add-on does nothing. Safe to add or remove mid-game.

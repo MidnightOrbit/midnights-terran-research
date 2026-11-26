@@ -5,6 +5,6 @@
   <dependency version="900" />
   <!-- Required: the main mod (manifest id = its Steam Workshop id). XUP, which adds the research, is optional so the
        Steam Workshop accepts this add-on (XUP is not on the Workshop); without XUP every patch skips itself. -->
-  <dependency id="ws_3846161649" version="105" optional="false" />
+  <dependency id="ws_3846161649" optional="false" />
   <dependency id="xup" optional="true" />
 </content>

@@ -7,7 +7,7 @@ An add-on for Midnight's Terran Research. X4 Upgrade Project adds four HQ resear
 wares too, the same way the main mod does.
 
 REQUIREMENTS
-  - Midnight's Terran Research 1.05 or later
+  - Midnight's Terran Research
   - X4 Upgrade Project: https://www.nexusmods.com/x4foundations/mods/2447
 
 Only install this if you use XUP: without it, the add-on does nothing. Safe to add or remove mid-game.
