@@ -12,6 +12,9 @@ the big ones lean on silicon carbide and computronic substrate.
 It covers 34 research items: the base game, plus the Envoy Pack, Tides of Avarice and
 Timelines DLCs if you have them.
 
+It only affects you: Player HQ research is something only the player does, so NPC factions are
+untouched.
+
 REQUIREMENTS
   - X4: Foundations 9.00 or later
   - Cradle of Humanity DLC (the Terran wares only exist with it)

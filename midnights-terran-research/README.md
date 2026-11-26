@@ -46,6 +46,9 @@ nice clean numbers.
 
 If you don't have one of those DLCs, that part just doesn't apply. No errors.
 
+It only affects you: Player HQ research is something only the player does, so NPC factions are
+untouched.
+
 Using [*X4 Upgrade Project (XUP)*](https://www.nexusmods.com/x4foundations/mods/2447?tab=description)?
 I made a small optional add-on, *Midnight's Terran Research - XUP Compatibility*, that does the
 same for XUP's Ship Recycling Efficiency I, II and III and Ship Reverse Engineering. Grab it

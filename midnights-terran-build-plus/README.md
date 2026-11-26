@@ -33,6 +33,11 @@ Stations on any other build method build exactly like vanilla.
 across the base game and every DLC you own. Items that already have a Terran recipe are left
 alone, and the Erlking keeps its normal recipe.
 
+It only affects you. NPC factions build the way they always do: the Commonwealth factions use
+their own build methods, and the Terran factions only build their own Terran items. The new
+recipes are only used by stations you set to the Terran method (including when NPCs buy ships
+at your Terran wharf).
+
 Using [*X4 Upgrade Project (XUP)*](https://www.nexusmods.com/x4foundations/mods/2447?tab=description)?
 The optional add-on in `midnights_terran_build_plus_xup/` gives XUP's Commonwealth ships,
 weapons and turrets Terran recipes too (also on the Nexus Files tab).

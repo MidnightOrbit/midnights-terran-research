@@ -13,6 +13,11 @@ Stations on any other build method build exactly like vanilla.
 It covers 870 Commonwealth ships, station modules, engines, shields, turrets, weapons and
 missiles, across the base game and every DLC you own. The Erlking keeps its normal recipe.
 
+It only affects you. NPC factions build the way they always do: the Commonwealth factions use
+their own build methods, and the Terran factions only build their own Terran items. The new
+recipes are only used by stations you set to the Terran method (including when NPCs buy ships
+at your Terran wharf).
+
 REQUIREMENTS
   - X4: Foundations 9.00 or later
   - Cradle of Humanity DLC (the Terran wares and the Terran build method come from it)
