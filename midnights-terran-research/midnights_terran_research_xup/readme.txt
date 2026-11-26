@@ -1,4 +1,4 @@
-Midnight's Terran Research - XUP Compatibility  (v1.00, X4: Foundations 9.00+)
+Midnight's Terran Research - XUP Compatibility  (v1.01, X4: Foundations 9.00+)
 by Midnight
 
 WHAT IT DOES
@@ -10,7 +10,7 @@ REQUIREMENTS
   - Midnight's Terran Research 1.05 or later
   - X4 Upgrade Project: https://www.nexusmods.com/x4foundations/mods/2447
 
-Only install this if you use XUP. Safe to add or remove mid-game.
+Only install this if you use XUP: without it, the add-on does nothing. Safe to add or remove mid-game.
 
 CREDITS
 The idea, the design and the testing are mine. An AI assistant (Claude, by Anthropic) helped

@@ -9,7 +9,6 @@ instead of hull parts, claytronics and the rest.
 I play Terran, and I wanted my Terran stations to build everything the Terran way.
 
 **Get it on the Steam Workshop:** https://steamcommunity.com/sharedfiles/filedetails/?id=3846306118
-**Or on Nexus:** https://www.nexusmods.com/x4foundations/mods/2630
 
 **You need the Cradle of Humanity DLC.** The Terran wares and the Terran build method come from it.
 
@@ -40,7 +39,7 @@ at your Terran wharf).
 
 Using [*X4 Upgrade Project (XUP)*](https://www.nexusmods.com/x4foundations/mods/2447?tab=description)?
 The optional add-on in `midnights_terran_build_plus_xup/` gives XUP's Commonwealth ships,
-weapons and turrets Terran recipes too (also on the Nexus Files tab).
+weapons and turrets Terran recipes too (also on the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3846322450)).
 
 ## Tested
 

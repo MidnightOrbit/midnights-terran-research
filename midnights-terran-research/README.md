@@ -52,7 +52,7 @@ untouched.
 Using [*X4 Upgrade Project (XUP)*](https://www.nexusmods.com/x4foundations/mods/2447?tab=description)?
 I made a small optional add-on, *Midnight's Terran Research - XUP Compatibility*, that does the
 same for XUP's Ship Recycling Efficiency I, II and III and Ship Reverse Engineering. Grab it
-from the Files tab on [Nexus](https://www.nexusmods.com/x4foundations/mods/2629),
+on the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3846322375),
 or copy `midnights_terran_research_xup` from this folder.
 
 ## Tested

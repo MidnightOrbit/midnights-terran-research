@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="midnights_terran_research_xup" version="100" name="Midnight's Terran Research - XUP Compatibility"
+<content id="ws_3846322375" version="101" name="Midnight's Terran Research - XUP Compatibility"
          description="Add-on for Midnight's Terran Research: X4 Upgrade Project's Ship Recycling Efficiency I-III and Ship Reverse Engineering research are paid along the same Terran ladder, at their original credit value. Requires Midnight's Terran Research and XUP."
          author="Midnight" date="2026-11-26" enabled="1" save="0">
   <dependency version="900" />
-  <!-- Required: the main mod (manifest id = its Steam Workshop id) and XUP, which adds the research. -->
+  <!-- Required: the main mod (manifest id = its Steam Workshop id). XUP, which adds the research, is optional so the
+       Steam Workshop accepts this add-on (XUP is not on the Workshop); without XUP every patch skips itself. -->
   <dependency id="ws_3846161649" version="105" optional="false" />
-  <dependency id="xup" optional="false" />
+  <dependency id="xup" optional="true" />
 </content>
