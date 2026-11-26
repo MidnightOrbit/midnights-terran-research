@@ -1,4 +1,4 @@
-Midnight's Terran Research  (v1.05, X4: Foundations 9.00+)
+Midnight's Terran Research  (v2.00, X4: Foundations 9.00+)
 by Midnight
 
 WHAT IT DOES

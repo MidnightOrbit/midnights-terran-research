@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="ws_3846161649" version="105" name="Midnight's Terran Research"
+<content id="ws_3846161649" version="200" name="Midnight's Terran Research"
          description="Player HQ research is paid along the Terran production ladder instead of in Commonwealth wares: energy cells, ore, silicon and nividium, metallic microlattice, silicon carbide and computronic substrate. Every cost keeps its original credit value at average ware prices (within 1%), and the more valuable the research, the more of it is paid in higher-tier Terran wares. Requires the Cradle of Humanity DLC. Covers the base game, the Envoy Pack, Tides of Avarice and Timelines DLCs."
          author="Midnight" date="2026-11-26" enabled="1" save="0">
   <dependency version="900" />

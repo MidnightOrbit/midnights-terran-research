@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="ws_3846322450" version="101" name="Midnight's Terran Build Method Plus - XUP Compatibility"
+<content id="ws_3846322450" version="200" name="Midnight's Terran Build Method Plus - XUP Compatibility"
          description="Add-on for Midnight's Terran Build Method Plus: gives the Commonwealth ships, weapons and turrets of X4 Upgrade Project (XUP) Terran recipes too, under the same rules. Requires Midnight's Terran Build Method Plus and XUP."
          author="Midnight" date="2026-11-26" enabled="1" save="0">
   <dependency version="900" />

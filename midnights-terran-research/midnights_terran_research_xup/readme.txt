@@ -1,4 +1,4 @@
-Midnight's Terran Research - XUP Compatibility  (v1.01, X4: Foundations 9.00+)
+Midnight's Terran Research - XUP Compatibility  (v2.00, X4: Foundations 9.00+)
 by Midnight
 
 WHAT IT DOES

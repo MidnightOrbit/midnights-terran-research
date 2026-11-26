@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="ws_3846322375" version="101" name="Midnight's Terran Research - XUP Compatibility"
+<content id="ws_3846322375" version="200" name="Midnight's Terran Research - XUP Compatibility"
          description="Add-on for Midnight's Terran Research: X4 Upgrade Project's Ship Recycling Efficiency I-III and Ship Reverse Engineering research are paid along the same Terran ladder, at their original credit value. Requires Midnight's Terran Research and XUP."
          author="Midnight" date="2026-11-26" enabled="1" save="0">
   <dependency version="900" />
