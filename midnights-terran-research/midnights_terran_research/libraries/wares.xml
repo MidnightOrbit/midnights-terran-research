@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Midnight's Terran Research: research paid along the Terran production ladder (energy cells,
+     ore/silicon/nividium, metallic microlattice, silicon carbide, computronic substrate). Each cost
+     keeps the original credit value at average ware prices; higher-value research leans on
+     higher-tier wares. Every op outside the base game is guarded, so missing DLCs/mods are fine. -->
+<diff>
+
+  <!-- Base game research -->
+  <replace sel="//wares/ware[@id='research_agentslot_01']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="1650" />
+      <ware ware="metallicmicrolattice" amount="710" />
+      <ware ware="ore" amount="295" />
+      <ware ware="silicon" amount="115" />
+      <ware ware="siliconcarbide" amount="13" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_agentslot_02']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="180" />
+      <ware ware="energycells" amount="23000" />
+      <ware ware="metallicmicrolattice" amount="11000" />
+      <ware ware="nividium" amount="290" />
+      <ware ware="ore" amount="2200" />
+      <ware ware="silicon" amount="855" />
+      <ware ware="siliconcarbide" amount="655" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_diplomacy_network']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="1150" />
+      <ware ware="metallicmicrolattice" amount="540" />
+      <ware ware="ore" amount="225" />
+      <ware ware="silicon" amount="85" />
+      <ware ware="siliconcarbide" amount="10" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_equipment_xenon']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="360" />
+      <ware ware="energycells" amount="45500" />
+      <ware ware="metallicmicrolattice" amount="22500" />
+      <ware ware="nividium" amount="5492" />
+      <ware ware="ore" amount="4500" />
+      <ware ware="silicon" amount="1750" />
+      <ware ware="siliconcarbide" amount="1350" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_interference_network']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="2600" />
+      <ware ware="metallicmicrolattice" amount="975" />
+      <ware ware="ore" amount="405" />
+      <ware ware="silicon" amount="155" />
+      <ware ware="siliconcarbide" amount="17" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_mod_engine_mk2']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="2050" />
+      <ware ware="metallicmicrolattice" amount="830" />
+      <ware ware="ore" amount="345" />
+      <ware ware="silicon" amount="135" />
+      <ware ware="siliconcarbide" amount="15" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_mod_engine_mk3']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="8" />
+      <ware ware="energycells" amount="3700" />
+      <ware ware="metallicmicrolattice" amount="1750" />
+      <ware ware="ore" amount="525" />
+      <ware ware="silicon" amount="200" />
+      <ware ware="siliconcarbide" amount="60" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_mod_shield_mk2']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="9" />
+      <ware ware="energycells" amount="3300" />
+      <ware ware="metallicmicrolattice" amount="1800" />
+      <ware ware="ore" amount="545" />
+      <ware ware="silicon" amount="210" />
+      <ware ware="siliconcarbide" amount="65" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_mod_shield_mk3']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="11" />
+      <ware ware="energycells" amount="4050" />
+      <ware ware="metallicmicrolattice" amount="2200" />
+      <ware ware="ore" amount="655" />
+      <ware ware="silicon" amount="255" />
+      <ware ware="siliconcarbide" amount="75" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_mod_ship_mk2']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="2000" />
+      <ware ware="metallicmicrolattice" amount="805" />
+      <ware ware="ore" amount="335" />
+      <ware ware="silicon" amount="130" />
+      <ware ware="siliconcarbide" amount="14" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_mod_ship_mk3']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="11" />
+      <ware ware="energycells" amount="4500" />
+      <ware ware="metallicmicrolattice" amount="2300" />
+      <ware ware="nividium" amount="50" />
+      <ware ware="ore" amount="690" />
+      <ware ware="silicon" amount="265" />
+      <ware ware="siliconcarbide" amount="80" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_mod_weapon_mk2']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="1700" />
+      <ware ware="metallicmicrolattice" amount="695" />
+      <ware ware="ore" amount="290" />
+      <ware ware="silicon" amount="110" />
+      <ware ware="siliconcarbide" amount="12" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_mod_weapon_mk3']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="12" />
+      <ware ware="energycells" amount="4900" />
+      <ware ware="metallicmicrolattice" amount="2450" />
+      <ware ware="ore" amount="740" />
+      <ware ware="silicon" amount="285" />
+      <ware ware="siliconcarbide" amount="85" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_module_defence']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="6" />
+      <ware ware="energycells" amount="2750" />
+      <ware ware="metallicmicrolattice" amount="1300" />
+      <ware ware="ore" amount="395" />
+      <ware ware="silicon" amount="155" />
+      <ware ware="siliconcarbide" amount="47" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_module_dock']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="7" />
+      <ware ware="energycells" amount="2950" />
+      <ware ware="metallicmicrolattice" amount="1500" />
+      <ware ware="ore" amount="455" />
+      <ware ware="silicon" amount="175" />
+      <ware ware="siliconcarbide" amount="55" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_module_habitation']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="6" />
+      <ware ware="energycells" amount="2100" />
+      <ware ware="metallicmicrolattice" amount="1200" />
+      <ware ware="ore" amount="360" />
+      <ware ware="silicon" amount="140" />
+      <ware ware="siliconcarbide" amount="42" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_module_production']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="8" />
+      <ware ware="energycells" amount="2900" />
+      <ware ware="metallicmicrolattice" amount="1650" />
+      <ware ware="ore" amount="495" />
+      <ware ware="silicon" amount="190" />
+      <ware ware="siliconcarbide" amount="60" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_module_storage']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="7" />
+      <ware ware="energycells" amount="3050" />
+      <ware ware="metallicmicrolattice" amount="1500" />
+      <ware ware="ore" amount="445" />
+      <ware ware="silicon" amount="170" />
+      <ware ware="siliconcarbide" amount="50" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_teleportation']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="2000" />
+      <ware ware="metallicmicrolattice" amount="800" />
+      <ware ware="ore" amount="335" />
+      <ware ware="silicon" amount="130" />
+      <ware ware="siliconcarbide" amount="14" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_teleportation_range_01']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="9" />
+      <ware ware="energycells" amount="3700" />
+      <ware ware="metallicmicrolattice" amount="1950" />
+      <ware ware="ore" amount="585" />
+      <ware ware="silicon" amount="225" />
+      <ware ware="siliconcarbide" amount="70" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_teleportation_range_02']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="29" />
+      <ware ware="energycells" amount="11000" />
+      <ware ware="metallicmicrolattice" amount="5950" />
+      <ware ware="nividium" amount="50" />
+      <ware ware="ore" amount="1800" />
+      <ware ware="silicon" amount="685" />
+      <ware ware="siliconcarbide" amount="210" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_teleportation_range_03']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="195" />
+      <ware ware="energycells" amount="27000" />
+      <ware ware="metallicmicrolattice" amount="12000" />
+      <ware ware="nividium" amount="2320" />
+      <ware ware="ore" amount="2450" />
+      <ware ware="silicon" amount="940" />
+      <ware ware="siliconcarbide" amount="720" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_warp_hq_01']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="655" />
+      <ware ware="energycells" amount="86500" />
+      <ware ware="metallicmicrolattice" amount="41000" />
+      <ware ware="nividium" amount="2050" />
+      <ware ware="ore" amount="8150" />
+      <ware ware="silicon" amount="3150" />
+      <ware ware="siliconcarbide" amount="2400" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_warp_hq_02']/research/primary">
+    <primary>
+      <ware ware="computronicsubstrate" amount="2100" />
+      <ware ware="energycells" amount="280500" />
+      <ware ware="metallicmicrolattice" amount="131000" />
+      <ware ware="nividium" amount="8400" />
+      <ware ware="ore" amount="26000" />
+      <ware ware="silicon" amount="10000" />
+      <ware ware="siliconcarbide" amount="7700" />
+    </primary>
+  </replace>
+
+  <!-- Envoy Pack (ego_dlc_mini_02) research -->
+  <replace sel="//wares/ware[@id='research_ship_gen_m_corvette_02']/research/primary" if="//wares/ware[@id='research_ship_gen_m_corvette_02']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="3150" />
+      <ware ware="metallicmicrolattice" amount="1150" />
+      <ware ware="ore" amount="485" />
+      <ware ware="silicon" amount="185" />
+      <ware ware="siliconcarbide" amount="21" />
+    </primary>
+  </replace>
+
+  <!-- Tides of Avarice (ego_dlc_pirate) research -->
+  <replace sel="//wares/ware[@id='research_condensate_sample']/research/primary" if="//wares/ware[@id='research_condensate_sample']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="14" />
+      <ware ware="energycells" amount="5300" />
+      <ware ware="metallicmicrolattice" amount="2900" />
+      <ware ware="ore" amount="870" />
+      <ware ware="silicon" amount="335" />
+      <ware ware="siliconcarbide" amount="105" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_condensate_sample_pre']/research/primary" if="//wares/ware[@id='research_condensate_sample_pre']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="27" />
+      <ware ware="energycells" amount="10500" />
+      <ware ware="metallicmicrolattice" amount="5500" />
+      <ware ware="ore" amount="1650" />
+      <ware ware="silicon" amount="635" />
+      <ware ware="siliconcarbide" amount="195" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_erlking_core']/research/primary" if="//wares/ware[@id='research_erlking_core']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="2450" />
+      <ware ware="metallicmicrolattice" amount="960" />
+      <ware ware="ore" amount="400" />
+      <ware ware="silicon" amount="155" />
+      <ware ware="siliconcarbide" amount="17" />
+    </primary>
+  </replace>
+
+  <!-- Timelines (ego_dlc_timelines) research -->
+  <replace sel="//wares/ware[@id='research_ship_arg_s_racing_01']/research/primary" if="//wares/ware[@id='research_ship_arg_s_racing_01']">
+    <primary>
+      <ware ware="energycells" amount="330" />
+      <ware ware="metallicmicrolattice" amount="105" />
+      <ware ware="ore" amount="45" />
+      <ware ware="silicon" amount="17" />
+      <ware ware="siliconcarbide" amount="2" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_ship_par_s_racing_01']/research/primary" if="//wares/ware[@id='research_ship_par_s_racing_01']">
+    <primary>
+      <ware ware="energycells" amount="330" />
+      <ware ware="metallicmicrolattice" amount="105" />
+      <ware ware="ore" amount="44" />
+      <ware ware="silicon" amount="17" />
+      <ware ware="siliconcarbide" amount="2" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_ship_tel_s_racing_01']/research/primary" if="//wares/ware[@id='research_ship_tel_s_racing_01']">
+    <primary>
+      <ware ware="energycells" amount="325" />
+      <ware ware="metallicmicrolattice" amount="110" />
+      <ware ware="ore" amount="45" />
+      <ware ware="silicon" amount="17" />
+      <ware ware="siliconcarbide" amount="2" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_ship_ter_l_flagship_01']/research/primary" if="//wares/ware[@id='research_ship_ter_l_flagship_01']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="1400" />
+      <ware ware="metallicmicrolattice" amount="590" />
+      <ware ware="ore" amount="245" />
+      <ware ware="silicon" amount="95" />
+      <ware ware="siliconcarbide" amount="10" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_ship_ter_m_corvette_01']/research/primary" if="//wares/ware[@id='research_ship_ter_m_corvette_01']">
+    <primary>
+      <ware ware="energycells" amount="1050" />
+      <ware ware="metallicmicrolattice" amount="345" />
+      <ware ware="ore" amount="145" />
+      <ware ware="silicon" amount="55" />
+      <ware ware="siliconcarbide" amount="6" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='research_ship_ter_s_fighter_01']/research/primary" if="//wares/ware[@id='research_ship_ter_s_fighter_01']">
+    <primary>
+      <ware ware="energycells" amount="770" />
+      <ware ware="metallicmicrolattice" amount="255" />
+      <ware ware="ore" amount="105" />
+      <ware ware="silicon" amount="41" />
+      <ware ware="siliconcarbide" amount="5" />
+    </primary>
+  </replace>
+</diff>

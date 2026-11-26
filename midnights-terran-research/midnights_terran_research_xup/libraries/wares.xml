@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Midnight's Terran Research - XUP Compatibility: X4 Upgrade Project research paid along the same
+     Terran ladder as the main mod. Every op is guarded with if=. -->
+<diff>
+
+  <!-- Compatibility: X4 Upgrade Project (xup) ship recycling / reverse engineering research -->
+  <replace sel="//wares/ware[@id='xup_research_recycle_01']/research/primary" if="//wares/ware[@id='xup_research_recycle_01']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="1" />
+      <ware ware="energycells" amount="3000" />
+      <ware ware="metallicmicrolattice" amount="1150" />
+      <ware ware="ore" amount="475" />
+      <ware ware="silicon" amount="180" />
+      <ware ware="siliconcarbide" amount="20" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='xup_research_recycle_02']/research/primary" if="//wares/ware[@id='xup_research_recycle_02']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="14" />
+      <ware ware="energycells" amount="5600" />
+      <ware ware="metallicmicrolattice" amount="2950" />
+      <ware ware="ore" amount="885" />
+      <ware ware="silicon" amount="340" />
+      <ware ware="siliconcarbide" amount="105" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='xup_research_recycle_03']/research/primary" if="//wares/ware[@id='xup_research_recycle_03']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="40" />
+      <ware ware="energycells" amount="15500" />
+      <ware ware="metallicmicrolattice" amount="8250" />
+      <ware ware="ore" amount="2450" />
+      <ware ware="silicon" amount="950" />
+      <ware ware="siliconcarbide" amount="290" />
+    </primary>
+  </replace>
+  <replace sel="//wares/ware[@id='xup_research_recycle_04']/research/primary" if="//wares/ware[@id='xup_research_recycle_04']">
+    <primary>
+      <ware ware="computronicsubstrate" amount="170" />
+      <ware ware="energycells" amount="21500" />
+      <ware ware="metallicmicrolattice" amount="10500" />
+      <ware ware="nividium" amount="275" />
+      <ware ware="ore" amount="2100" />
+      <ware ware="silicon" amount="810" />
+      <ware ware="siliconcarbide" amount="620" />
+    </primary>
+  </replace>
+</diff>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="midnights_terran_build_plus_xup" version="100" name="Midnight's Terran Build Method Plus - XUP Compatibility"
+         description="Add-on for Midnight's Terran Build Method Plus: gives the Commonwealth ships, weapons and turrets of X4 Upgrade Project (XUP) Terran recipes too, under the same rules. Requires Midnight's Terran Build Method Plus and XUP."
+         author="Midnight" date="2026-11-26" enabled="1" save="0">
+  <dependency version="900" />
+  <!-- Required: the main mod (its manifest id = Steam Workshop item 3846306118) and XUP, which adds the items. -->
+  <dependency id="ws_3846306118" version="101" optional="false" />
+  <dependency id="xup" optional="false" />
+  <!-- Optional: XUP's DLC parts add more items; loading after them lets those get recipes too. -->
+  <dependency id="xup_dlc_boron" optional="true" />
+  <dependency id="xup_dlc_pirate" optional="true" />
+  <dependency id="xup_dlc_split" optional="true" />
+</content>

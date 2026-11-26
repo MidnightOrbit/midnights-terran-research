@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Midnight's Terran Build Method Plus - XUP Compatibility: Terran recipes for X4 Upgrade Project items, the same
+     rules as the core mod. Every op is guarded with if=. -->
+<diff>
+
+  <!-- items from 'xup': 23 -->
+  <add sel="/wares/ware[@id='ship_arg_xl_battleship_lc4_01_a_ware']" if="/wares/ware[@id='ship_arg_xl_battleship_lc4_01_a_ware'][not(production[@method='terran'])]">
+    <production time="356" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="560" />
+        <ware ware="energycells" amount="59500" />
+        <ware ware="siliconcarbide" amount="380" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_arg_xl_battleship_lc4_01_b_ware']" if="/wares/ware[@id='ship_arg_xl_battleship_lc4_01_b_ware'][not(production[@method='terran'])]">
+    <production time="356" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="560" />
+        <ware ware="energycells" amount="59500" />
+        <ware ware="siliconcarbide" amount="380" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_arg_xl_battleship_lc4_01_ware']" if="/wares/ware[@id='ship_arg_xl_battleship_lc4_01_ware'][not(production[@method='terran'])]">
+    <production time="356" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="560" />
+        <ware ware="energycells" amount="59500" />
+        <ware ware="siliconcarbide" amount="380" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_arg_xl_battleship_lc4_02_a_ware']" if="/wares/ware[@id='ship_arg_xl_battleship_lc4_02_a_ware'][not(production[@method='terran'])]">
+    <production time="356" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="560" />
+        <ware ware="energycells" amount="59500" />
+        <ware ware="siliconcarbide" amount="380" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_arg_xl_battleship_lc4_02_b_ware']" if="/wares/ware[@id='ship_arg_xl_battleship_lc4_02_b_ware'][not(production[@method='terran'])]">
+    <production time="356" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="560" />
+        <ware ware="energycells" amount="59500" />
+        <ware ware="siliconcarbide" amount="380" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_arg_xl_battleship_lc4_02_ware']" if="/wares/ware[@id='ship_arg_xl_battleship_lc4_02_ware'][not(production[@method='terran'])]">
+    <production time="356" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="560" />
+        <ware ware="energycells" amount="59500" />
+        <ware ware="siliconcarbide" amount="380" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_par_s_heavyfighter_xup_01_a']" if="/wares/ware[@id='ship_par_s_heavyfighter_xup_01_a'][not(production[@method='terran'])]">
+    <production time="13" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="9" />
+        <ware ware="energycells" amount="995" />
+        <ware ware="siliconcarbide" amount="6" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_par_xl_battleship_lc4_01_a_ware']" if="/wares/ware[@id='ship_par_xl_battleship_lc4_01_a_ware'][not(production[@method='terran'])]">
+    <production time="632" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="495" />
+        <ware ware="energycells" amount="52500" />
+        <ware ware="siliconcarbide" amount="335" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_par_xl_battleship_lc4_01_b_ware']" if="/wares/ware[@id='ship_par_xl_battleship_lc4_01_b_ware'][not(production[@method='terran'])]">
+    <production time="632" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="495" />
+        <ware ware="energycells" amount="52500" />
+        <ware ware="siliconcarbide" amount="335" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_par_xl_battleship_lc4_01_ware']" if="/wares/ware[@id='ship_par_xl_battleship_lc4_01_ware'][not(production[@method='terran'])]">
+    <production time="632" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="495" />
+        <ware ware="energycells" amount="52500" />
+        <ware ware="siliconcarbide" amount="335" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_tel_xl_battleship_lc4_01_a_ware']" if="/wares/ware[@id='ship_tel_xl_battleship_lc4_01_a_ware'][not(production[@method='terran'])]">
+    <production time="576" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="555" />
+        <ware ware="energycells" amount="58500" />
+        <ware ware="siliconcarbide" amount="375" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_tel_xl_battleship_lc4_01_b_ware']" if="/wares/ware[@id='ship_tel_xl_battleship_lc4_01_b_ware'][not(production[@method='terran'])]">
+    <production time="576" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="555" />
+        <ware ware="energycells" amount="58500" />
+        <ware ware="siliconcarbide" amount="375" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_tel_xl_battleship_lc4_01_ware']" if="/wares/ware[@id='ship_tel_xl_battleship_lc4_01_ware'][not(production[@method='terran'])]">
+    <production time="576" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="555" />
+        <ware ware="energycells" amount="58500" />
+        <ware ware="siliconcarbide" amount="375" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_tel_xl_battleship_lc4_02_a_ware']" if="/wares/ware[@id='ship_tel_xl_battleship_lc4_02_a_ware'][not(production[@method='terran'])]">
+    <production time="576" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="555" />
+        <ware ware="energycells" amount="58500" />
+        <ware ware="siliconcarbide" amount="375" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_tel_xl_battleship_lc4_02_b_ware']" if="/wares/ware[@id='ship_tel_xl_battleship_lc4_02_b_ware'][not(production[@method='terran'])]">
+    <production time="576" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="555" />
+        <ware ware="energycells" amount="58500" />
+        <ware ware="siliconcarbide" amount="375" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_tel_xl_battleship_lc4_02_ware']" if="/wares/ware[@id='ship_tel_xl_battleship_lc4_02_ware'][not(production[@method='terran'])]">
+    <production time="576" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="555" />
+        <ware ware="energycells" amount="58500" />
+        <ware ware="siliconcarbide" amount="375" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='turret_par_l_beam_xup_01_mk1']" if="/wares/ware[@id='turret_par_l_beam_xup_01_mk1'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="3" />
+        <ware ware="energycells" amount="650" />
+        <ware ware="metallicmicrolattice" amount="55" />
+        <ware ware="siliconcarbide" amount="11" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='turret_tel_l_gauss_xup_01_mk1']" if="/wares/ware[@id='turret_tel_l_gauss_xup_01_mk1'][not(production[@method='terran'])]">
+    <production time="12" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="2" />
+        <ware ware="energycells" amount="175" />
+        <ware ware="metallicmicrolattice" amount="30" />
+        <ware ware="siliconcarbide" amount="5" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='weapon_par_s_laser_xup_01_mk1']" if="/wares/ware[@id='weapon_par_s_laser_xup_01_mk1'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="energycells" amount="550" />
+        <ware ware="metallicmicrolattice" amount="17" />
+        <ware ware="siliconcarbide" amount="2" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='weapon_par_s_laser_xup_01_mk2']" if="/wares/ware[@id='weapon_par_s_laser_xup_01_mk2'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="2" />
+        <ware ware="energycells" amount="300" />
+        <ware ware="metallicmicrolattice" amount="40" />
+        <ware ware="siliconcarbide" amount="4" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='weapon_tel_s_laser_xup_01_mk1']" if="/wares/ware[@id='weapon_tel_s_laser_xup_01_mk1'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="energycells" amount="550" />
+        <ware ware="metallicmicrolattice" amount="17" />
+        <ware ware="siliconcarbide" amount="2" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='weapon_tel_s_laser_xup_01_mk2']" if="/wares/ware[@id='weapon_tel_s_laser_xup_01_mk2'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="2" />
+        <ware ware="energycells" amount="300" />
+        <ware ware="metallicmicrolattice" amount="40" />
+        <ware ware="siliconcarbide" amount="4" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='turret_par_l_beam_01_mk1']" if="/wares/ware[@id='turret_par_l_beam_01_mk1'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="3" />
+        <ware ware="energycells" amount="650" />
+        <ware ware="metallicmicrolattice" amount="55" />
+        <ware ware="siliconcarbide" amount="11" />
+      </primary>
+    </production>
+  </add>
+
+  <!-- items from 'xup_dlc_boron': 6 -->
+  <add sel="/wares/ware[@id='ship_bor_xl_battleship_lc4_01_a_ware']" if="/wares/ware[@id='ship_bor_xl_battleship_lc4_01_a_ware'][not(production[@method='terran'])]">
+    <production time="350" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="330" />
+        <ware ware="energycells" amount="35000" />
+        <ware ware="siliconcarbide" amount="220" />
+        <ware ware="water" amount="7160" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_bor_xl_battleship_lc4_01_b_ware']" if="/wares/ware[@id='ship_bor_xl_battleship_lc4_01_b_ware'][not(production[@method='terran'])]">
+    <production time="350" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="330" />
+        <ware ware="energycells" amount="35000" />
+        <ware ware="siliconcarbide" amount="220" />
+        <ware ware="water" amount="7160" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_bor_xl_battleship_lc4_01_ware']" if="/wares/ware[@id='ship_bor_xl_battleship_lc4_01_ware'][not(production[@method='terran'])]">
+    <production time="350" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="330" />
+        <ware ware="energycells" amount="35000" />
+        <ware ware="siliconcarbide" amount="220" />
+        <ware ware="water" amount="7160" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='turret_bor_l_beam_xup_01_mk1']" if="/wares/ware[@id='turret_bor_l_beam_xup_01_mk1'][not(production[@method='terran'])]">
+    <production time="20" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="2" />
+        <ware ware="energycells" amount="525" />
+        <ware ware="metallicmicrolattice" amount="42" />
+        <ware ware="siliconcarbide" amount="8" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='turret_bor_m_gatling_xup_01_mk1']" if="/wares/ware[@id='turret_bor_m_gatling_xup_01_mk1'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="1" />
+        <ware ware="energycells" amount="130" />
+        <ware ware="metallicmicrolattice" amount="15" />
+        <ware ware="siliconcarbide" amount="2" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='turret_bor_m_gatling_xup_02_mk1']" if="/wares/ware[@id='turret_bor_m_gatling_xup_02_mk1'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="1" />
+        <ware ware="energycells" amount="130" />
+        <ware ware="metallicmicrolattice" amount="15" />
+        <ware ware="siliconcarbide" amount="2" />
+      </primary>
+    </production>
+  </add>
+
+  <!-- items from 'xup_dlc_pirate': 2 -->
+  <add sel="/wares/ware[@id='ship_pir_l_miner_gas_lc4_01_a']" if="/wares/ware[@id='ship_pir_l_miner_gas_lc4_01_a'][not(production[@method='terran'])]">
+    <production time="87" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="60" />
+        <ware ware="energycells" amount="6850" />
+        <ware ware="siliconcarbide" amount="41" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_pir_s_scout_xup_01_a']" if="/wares/ware[@id='ship_pir_s_scout_xup_01_a'][not(production[@method='terran'])]">
+    <production time="8" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="5" />
+        <ware ware="energycells" amount="580" />
+        <ware ware="siliconcarbide" amount="3" />
+      </primary>
+    </production>
+  </add>
+
+  <!-- items from 'xup_dlc_split': 9 -->
+  <add sel="/wares/ware[@id='ship_spl_l_carrier_lc4_01_ware']" if="/wares/ware[@id='ship_spl_l_carrier_lc4_01_ware'][not(production[@method='terran'])]">
+    <production time="280" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="290" />
+        <ware ware="energycells" amount="31000" />
+        <ware ware="siliconcarbide" amount="195" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_spl_m_trans_container_xup_01_a']" if="/wares/ware[@id='ship_spl_m_trans_container_xup_01_a'][not(production[@method='terran'])]">
+    <production time="39" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="19" />
+        <ware ware="energycells" amount="2150" />
+        <ware ware="siliconcarbide" amount="13" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_spl_xl_battleship_lc4_01_a_ware']" if="/wares/ware[@id='ship_spl_xl_battleship_lc4_01_a_ware'][not(production[@method='terran'])]">
+    <production time="328" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="715" />
+        <ware ware="energycells" amount="76500" />
+        <ware ware="siliconcarbide" amount="485" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_spl_xl_battleship_lc4_01_b_ware']" if="/wares/ware[@id='ship_spl_xl_battleship_lc4_01_b_ware'][not(production[@method='terran'])]">
+    <production time="328" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="715" />
+        <ware ware="energycells" amount="76500" />
+        <ware ware="siliconcarbide" amount="485" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_spl_xl_battleship_lc4_01_c_ware']" if="/wares/ware[@id='ship_spl_xl_battleship_lc4_01_c_ware'][not(production[@method='terran'])]">
+    <production time="328" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="715" />
+        <ware ware="energycells" amount="76500" />
+        <ware ware="siliconcarbide" amount="485" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='ship_spl_xl_battleship_lc4_01_ware']" if="/wares/ware[@id='ship_spl_xl_battleship_lc4_01_ware'][not(production[@method='terran'])]">
+    <production time="328" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="715" />
+        <ware ware="energycells" amount="76500" />
+        <ware ware="siliconcarbide" amount="485" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='weapon_spl_s_laser_xup_01_mk1']" if="/wares/ware[@id='weapon_spl_s_laser_xup_01_mk1'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="energycells" amount="550" />
+        <ware ware="metallicmicrolattice" amount="17" />
+        <ware ware="siliconcarbide" amount="2" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='weapon_spl_s_laser_xup_01_mk2']" if="/wares/ware[@id='weapon_spl_s_laser_xup_01_mk2'][not(production[@method='terran'])]">
+    <production time="10" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="2" />
+        <ware ware="energycells" amount="300" />
+        <ware ware="metallicmicrolattice" amount="40" />
+        <ware ware="siliconcarbide" amount="4" />
+      </primary>
+    </production>
+  </add>
+  <add sel="/wares/ware[@id='weapon_spl_xl_battleship_lc4_01_mk1_ware']" if="/wares/ware[@id='weapon_spl_xl_battleship_lc4_01_mk1_ware'][not(production[@method='terran'])]">
+    <production time="17" amount="1" method="terran" name="{20206,901}">
+      <primary>
+        <ware ware="computronicsubstrate" amount="36" />
+        <ware ware="energycells" amount="2150" />
+        <ware ware="metallicmicrolattice" amount="650" />
+        <ware ware="siliconcarbide" amount="75" />
+      </primary>
+    </production>
+  </add>
+</diff>

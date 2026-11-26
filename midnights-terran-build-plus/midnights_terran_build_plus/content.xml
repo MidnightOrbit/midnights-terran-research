@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content id="ws_3846306118" version="101" name="Midnight's Terran Build Method Plus"
+         description="Stations on the Terran build method can build Commonwealth ships, station modules and equipment with Terran wares. The Terran recipes cost a premium in mined resources (modules 1.05x, shields 1.10x, everything else 1.2x, never cheaper in credits), mixed the way Egosoft mixes its own Terran recipes. Stations on any other build method build exactly like vanilla. Requires the Cradle of Humanity DLC. Covers the base game and every DLC you own."
+         author="Midnight" date="2026-11-26" enabled="1" save="0">
+  <dependency version="900" />
+  <!-- Required: the Terran wares and the terran build method only exist with this DLC. -->
+  <dependency id="ego_dlc_terran" version="100" optional="false" />
+  <dependency id="ego_dlc_split" version="100" optional="true" />
+  <dependency id="ego_dlc_pirate" version="100" optional="true" />
+  <dependency id="ego_dlc_boron" version="100" optional="true" />
+  <dependency id="ego_dlc_timelines" version="100" optional="true" />
+  <dependency id="ego_dlc_mini_01" version="100" optional="true" />
+  <dependency id="ego_dlc_mini_02" version="100" optional="true" />
+</content>
