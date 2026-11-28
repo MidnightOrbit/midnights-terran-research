@@ -1,0 +1,839 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MIC_Core - Military-Industrial Complex procurement backend (prototype M0a).
+
+  M0a scope: PROVE the demand model on a live universe. No offers, no acceptance, no payment.
+    * faction registry built from global.$FactionManagers (DLC / mod factions included automatically)
+    * per-faction contractor state (points, rank, warnings) - created lazily
+    * round-robin demand scan, one faction per tick:
+        - resource shortages: station.resources.pure x cargo.count / cargo.target (gm_supplyfactory metric)
+        - military losses: weighted fight-ship strength snapshot vs the previous one (factionlogic weights)
+        - wars: get_factions_by_relation enemy (who would object to military contracts)
+    * contract generation into player.entity.$MIC_State.$Contracts, with budgets, caps and expiry
+    * contracts are VISIBLE to the player (logbook, MIC menu, mission offers) only while the player meets
+      their requirements (reputation >= $minrep and contractor rank >= $minrank). Hidden contracts still
+      exist and are traced in debug.txt as [HIDDEN] for testing; they are announced once they become eligible.
+
+  M0b additions:
+    * objectors are a MILITARY-contract concept. The scan reports "military objectors" (who would object
+      if this faction bought warships); supply contracts carry none and say so.
+    * eligible supply contracts near the player become real vanilla mission offers through
+      md.GM_LargeSupply.Start (same offer list, briefing, objectives, delivery tracking and payout as vanilla).
+      The player sells the wares at the normal price; the mission pays the MIC premium on success.
+    * player.entity.$MIC_UI: a UI-ready copy of the contract list (plain strings and numbers only),
+      read by the MIC top-level menu (ui/mic_menu.lua) with GetNPCBlackboard.
+
+  State lives on player.entity (persists, and Lua can read it later with GetNPCBlackboard).
+  Table keys are faction ID STRINGS, never faction objects, so the future Lua UI can read them.
+
+  DEBUG LOGGING (all lines start with [MIC] and a subsystem tag, so: grep '\[MIC\]' debug.txt)
+    $Settings.$DebugLevel  0 = errors/warnings only, 1 = info (load, scans, contracts, cycle summaries),
+                           2 = verbose (per-faction details, shortage top list, every decision and its reason)
+    Tags: [LOAD] [STATE] [TICK] [QUEUE] [SCAN] [SHORT] [MIL] [WAR] [GEN-RES] [GEN-REP] [NEW] [EXPIRE] [CYCLE] [WARN]
+    [WARN] lines always print: they mark an unexpected state (missing registry, zero stations, bad values).
+    Each cycle (all factions scanned once) also writes a summary to the logbook, readable during play.
+-->
+<mdscript name="MIC_Core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="md.xsd">
+  <cues>
+
+    <!-- ================================================================== -->
+    <!-- LOAD / TRIGGER MARKERS: fires on new game AND every save load        -->
+    <!-- ================================================================== -->
+    <cue name="OnSetupStart" instantiate="true">
+      <conditions>
+        <event_cue_signalled cue="md.Setup.Start"/>
+      </conditions>
+      <actions>
+        <debug_text text="'[MIC][LOAD] MIC_Core loaded (prototype M0b). player.age=' + player.age + ' existingstate=' + player.entity.$MIC_State?" filter="error"/>
+        <include_actions ref="EnsureState"/>
+        <include_actions ref="SetDebugChances"/>
+        <set_value name="$S" exact="player.entity.$MIC_State"/>
+        <debug_text text="'[MIC][STATE] version=%s nextid=%s factions=%s contracts=%s history=%s queue=%s cycle=%s debuglevel=%s'.[$S.$Version, $S.$NextId, $S.$Factions.keys.count, $S.$Contracts.count, $S.$History.count, $S.$ScanQueue.count, $S.$Cycle, $S.$Settings.$DebugLevel]" filter="error" chance="$DbgI"/>
+        <do_for_each name="$K" in="$S.$Contracts">
+          <debug_text text="'[MIC][STATE]   open contract #%s %s %s state=%s expires in %ss'.[$K.$id, @$K.$faction.id, $K.$category, $K.$state, $K.$expires - player.age]" filter="error" chance="$DbgV"/>
+        </do_for_each>
+        <do_if value="global.$FactionManagers?">
+          <debug_text text="'[MIC][LOAD] global.$FactionManagers present at load: ' + global.$FactionManagers.keys.count + ' factions'" filter="error" chance="$DbgI"/>
+        </do_if>
+        <do_else>
+          <debug_text text="'[MIC][WARN] global.$FactionManagers NOT present at load (first Tick will retry)'" filter="error"/>
+        </do_else>
+        <remove_value name="$S"/>
+        <show_notification text="['Military-Industrial Complex', 'Procurement backend online (M0b prototype)']" sound="notification_generic"/>
+        <write_to_logbook category="general" title="'[MIC] Procurement backend online'" text="'Prototype M0b: contracts you qualify for appear in the MIC menu (top bar) and as mission offers near their destination. Scan: one faction every %ss.'.[player.entity.$MIC_State.$Settings.$TickSeconds]"/>
+        <do_if value="player.entity.$MIC_State.$Settings.$TestMode == 1">
+          <debug_text text="'[MIC][TEST] TEST MODE ON: reputation requirements replaced by %s (rank requirements still apply)'.[player.entity.$MIC_State.$Settings.$TestMinRep]" filter="error"/>
+          <show_notification text="['Military-Industrial Complex', 'TEST MODE: reputation requirement lowered to %s'.[player.entity.$MIC_State.$Settings.$TestMinRep]]" sound="notification_generic"/>
+        </do_if>
+        <include_actions ref="PublishUI"/>
+      </actions>
+    </cue>
+
+    <!-- The MIC menu sends AddUITriggeredEvent('MICMenu', ...) when it opens or the player presses Refresh:
+         republish so the menu never shows data older than this moment, then tell Lua to redraw. -->
+    <cue name="OnMenuRequest" instantiate="true">
+      <conditions>
+        <event_ui_triggered screen="'MICMenu'"/>
+        <check_value value="player.entity.$MIC_State?"/>
+      </conditions>
+      <actions>
+        <include_actions ref="SetDebugChances"/>
+        <debug_text text="'[MIC][UI] menu request: ' + event.param2" filter="error" chance="$DbgV"/>
+        <include_actions ref="PublishUI"/>
+      </actions>
+    </cue>
+
+    <!-- ================================================================== -->
+    <!-- STATE                                                                -->
+    <!-- ================================================================== -->
+    <!-- Creates any missing key, so an older save gains new keys without a patch block. -->
+    <library name="EnsureState">
+      <actions>
+        <do_if value="not player.entity.$MIC_State?">
+          <set_value name="player.entity.$MIC_State" exact="table[]"/>
+        </do_if>
+        <set_value name="$S" exact="player.entity.$MIC_State"/>
+        <do_if value="not $S.$Version?"><set_value name="$S.$Version" exact="1"/></do_if>
+        <do_if value="not $S.$NextId?"><set_value name="$S.$NextId" exact="1"/></do_if>
+        <do_if value="not $S.$Factions?"><set_value name="$S.$Factions" exact="table[]"/></do_if>
+        <do_if value="not $S.$Contracts?"><set_value name="$S.$Contracts" exact="[]"/></do_if>
+        <do_if value="not $S.$History?"><set_value name="$S.$History" exact="[]"/></do_if>
+        <do_if value="not $S.$ScanQueue?"><set_value name="$S.$ScanQueue" exact="[]"/></do_if>
+        <do_if value="not $S.$Cycle?"><set_value name="$S.$Cycle" exact="0" comment="full passes over the faction queue"/></do_if>
+        <do_if value="not $S.$CycleStats?"><set_value name="$S.$CycleStats" exact="table[$scanned = 0, $new = 0, $expired = 0, $started = player.age]"/></do_if>
+
+        <do_if value="not $S.$Settings?"><set_value name="$S.$Settings" exact="table[]"/></do_if>
+        <set_value name="$C" exact="$S.$Settings"/>
+        <do_if value="not $C.$DebugLevel?"><set_value name="$C.$DebugLevel" exact="2" comment="0 errors only, 1 info, 2 verbose. Prototype default: verbose"/></do_if>
+        <do_if value="not $C.$TickSeconds?"><set_value name="$C.$TickSeconds" exact="60"/></do_if>
+        <do_if value="not $C.$MaxAvailablePerFaction?"><set_value name="$C.$MaxAvailablePerFaction" exact="3"/></do_if>
+        <do_if value="not $C.$OfferLifetime?"><set_value name="$C.$OfferLifetime" exact="7200s"/></do_if>
+        <do_if value="not $C.$ShortagePercent?"><set_value name="$C.$ShortagePercent" exact="25" comment="a pure resource below this % of its storage target counts as short"/></do_if>
+        <do_if value="not $C.$ResourcePremiumPercent?"><set_value name="$C.$ResourcePremiumPercent" exact="25" comment="paid ON TOP of the normal sale price, so a delivery is never paid twice"/></do_if>
+        <do_if value="not $C.$ResourceMaxUnits?"><set_value name="$C.$ResourceMaxUnits" exact="20000"/></do_if>
+        <do_if value="not $C.$LossThresholdPercent?"><set_value name="$C.$LossThresholdPercent" exact="5" comment="strength drop between scans that triggers replenishment"/></do_if>
+        <do_if value="not $C.$BudgetCap?"><set_value name="$C.$BudgetCap" exact="25000000Cr"/></do_if>
+        <do_if value="not $C.$BudgetRegenPerScan?"><set_value name="$C.$BudgetRegenPerScan" exact="2000000Cr"/></do_if>
+        <do_if value="not $C.$PaymentMultiplier?"><set_value name="$C.$PaymentMultiplier" exact="100" comment="percent"/></do_if>
+        <!-- TEST MODE (prototype M0b only): replaces every contract's reputation requirement with $TestMinRep, so
+             the menu and offers can be tested on a fresh save. Rank requirements still apply, so ship contracts
+             (rank 1+) stay hidden and the visibility gate is still exercised. Set $TestMode to 0 to turn it off. -->
+        <do_if value="not $C.$TestMode?"><set_value name="$C.$TestMode" exact="1"/></do_if>
+        <do_if value="not $C.$TestMinRep?"><set_value name="$C.$TestMinRep" exact="0" comment="UI reputation; 0 = any non-hostile faction"/></do_if>
+        <!-- TEST (M0b only, needs $TestMode 1): when the player enters a sector, the faction that owns it is scanned on the
+             next tick (out of queue order), and its supply contract prefers a short ware at a station in that sector,
+             so a vanilla mission offer can be tested within a minute wherever the player is. -->
+        <do_if value="not $C.$TestLocalFirst?"><set_value name="$C.$TestLocalFirst" exact="1"/></do_if>
+        <do_if value="not $C.$ExcludedFactions?">
+          <set_value name="$C.$ExcludedFactions" exact="['player', 'xenon', 'khaak', 'ownerless', 'civilian', 'criminal', 'smuggler', 'visitor', 'scaleplate', 'buccaneers', 'loanshark', 'yaki', 'kaori', 'court', 'fallensplit']"/>
+        </do_if>
+        <!-- UI reputation (-30..+30) required per contract tier, index = tier 1..6.
+             Default applies to any faction without its own row, including mod factions. -->
+        <do_if value="not $C.$RepTiers?">
+          <set_value name="$C.$RepTiers" exact="table[
+              $default  = [5, 10, 15, 20, 25, 30],
+              $terran   = [8, 13, 18, 23, 27, 30],
+              $pioneers = [6, 11, 16, 21, 26, 30],
+              $teladi   = [3,  8, 13, 18, 23, 28],
+              $ministry = [3,  8, 13, 18, 23, 28]
+            ]"/>
+        </do_if>
+        <!-- procurement points needed for contractor ranks 1..6 (rank 0 = unregistered) -->
+        <do_if value="not $C.$RankPoints?">
+          <set_value name="$C.$RankPoints" exact="[0, 100, 400, 1200, 3000, 8000]"/>
+        </do_if>
+        <remove_value name="$S"/>
+        <remove_value name="$C"/>
+      </actions>
+    </library>
+
+    <!-- out: $DbgI (100 when DebugLevel >= 1), $DbgV (100 when DebugLevel >= 2). Use as chance= on debug_text. -->
+    <library name="SetDebugChances">
+      <actions>
+        <set_value name="$DbgI" exact="if @player.entity.$MIC_State.$Settings.$DebugLevel ge 1 then 100 else 0"/>
+        <set_value name="$DbgV" exact="if @player.entity.$MIC_State.$Settings.$DebugLevel ge 2 then 100 else 0"/>
+      </actions>
+    </library>
+
+    <!-- in: $F (faction). out: $FS (that faction's state table, created if missing) -->
+    <library name="GetFactionState">
+      <actions>
+        <do_if value="not player.entity.$MIC_State.$Factions.{'$' + $F.id}?">
+          <set_value name="player.entity.$MIC_State.$Factions.{'$' + $F.id}" exact="table[
+              $faction = $F,
+              $points = 0,
+              $rank = 0,
+              $warnings = 0,
+              $blacklisted = false,
+              $budget = player.entity.$MIC_State.$Settings.$BudgetRegenPerScan * 3,
+              $strength = -1,
+              $classcounts = table[],
+              $lastscan = 0s,
+              $shortages = table[]
+            ]"/>
+          <debug_text text="'[MIC][STATE] created contractor state for %s (%s), starting budget %s'.[$F.id, $F.knownname, player.entity.$MIC_State.$Factions.{'$' + $F.id}.$budget.formatted.default]" filter="error" chance="$DbgI"/>
+        </do_if>
+        <set_value name="$FS" exact="player.entity.$MIC_State.$Factions.{'$' + $F.id}"/>
+      </actions>
+    </library>
+
+    <!-- in: $F, $Tier (1..6). out: $RepRequired (UI value), $RepNow (UI value) -->
+    <library name="GetRepRequirement">
+      <actions>
+        <set_value name="$Tiers" exact="player.entity.$MIC_State.$Settings.$RepTiers"/>
+        <set_value name="$Row" exact="if $Tiers.{'$' + $F.id}? then $Tiers.{'$' + $F.id} else $Tiers.$default"/>
+        <set_value name="$RepRequired" exact="$Row.{$Tier}"/>
+        <set_value name="$RepNow" exact="$F.relation.{$F.relationto.{faction.player}}.uivalue"/>
+      </actions>
+    </library>
+
+    <!-- in: $K (contract). out: $Eligible (true when the player may see and take it), $KRep, $KRank.
+         Same reputation expression as GetRepRequirement, which evaluated correctly in the M0a test. -->
+    <library name="CheckEligible">
+      <actions>
+        <set_value name="$KF" exact="$K.$faction"/>
+        <set_value name="$KRep" exact="$KF.relation.{$KF.relationto.{faction.player}}.uivalue"/>
+        <set_value name="$KRank" exact="0"/>
+        <do_if value="player.entity.$MIC_State.$Factions.{'$' + $KF.id}?">
+          <set_value name="$KRank" exact="player.entity.$MIC_State.$Factions.{'$' + $KF.id}.$rank"/>
+        </do_if>
+        <set_value name="$KNeedRep" exact="$K.$minrep"/>
+        <do_if value="@player.entity.$MIC_State.$Settings.$TestMode == 1">
+          <set_value name="$KNeedRep" exact="player.entity.$MIC_State.$Settings.$TestMinRep"/>
+        </do_if>
+        <set_value name="$Eligible" exact="($KRep ge $KNeedRep) and ($KRank ge $K.$minrank)"/>
+        <remove_value name="$KF"/>
+      </actions>
+    </library>
+
+    <!-- in: $K. out: $What, $Pay, $ObjText (the human-readable parts of a contract) -->
+    <library name="DescribeContract">
+      <actions>
+        <do_if value="$K.$category == 'resource'">
+          <set_value name="$What" exact="'%s x %s to %s (%s)'.[$K.$amount, $K.$ware.name, @$K.$destination.knownname, @$K.$destination.sector.knownname]"/>
+          <set_value name="$Pay" exact="$K.$payment.formatted.default + ' Cr premium on top of the normal sale price'"/>
+          <set_value name="$ObjText" exact="'n/a (supply contracts provoke no objections)'"/>
+        </do_if>
+        <do_else>
+          <set_value name="$What" exact="'%s x %s-class warships (strength fell %s percent), deliver near %s'.[$K.$amount, $K.$shipclass, $K.$droppct, @$K.$destination.knownname]"/>
+          <set_value name="$Pay" exact="$K.$paymentnote"/>
+          <set_value name="$ObjText" exact="''"/>
+          <do_for_each name="$O" in="$K.$objectors">
+            <set_value name="$ObjText" exact="$ObjText + $O.$faction.knownname + ' (' + $O.$severity + ') '"/>
+          </do_for_each>
+          <do_if value="$ObjText == ''"><set_value name="$ObjText" exact="'none'"/></do_if>
+        </do_else>
+      </actions>
+    </library>
+
+    <!-- in: $K (eligible, not yet announced). Writes the logbook entry the player sees. -->
+    <library name="AnnounceContract">
+      <actions>
+        <include_actions ref="DescribeContract"/>
+        <write_to_logbook category="general" title="'[MIC] ' + $K.$faction.knownname + ' procurement notice'" text="'#%s %s. Pay: %s. Objectors: %s'.[$K.$id, $What, $Pay, $ObjText]" faction="$K.$faction"/>
+        <set_value name="$K.$announced" exact="true"/>
+        <debug_text text="'[MIC][SHOW] #%s announced to the player (logbook)'.[$K.$id]" filter="error" chance="$DbgI"/>
+      </actions>
+    </library>
+
+    <!-- Each tick: contracts that became eligible since they were created (reputation rose) are announced now. -->
+    <library name="AnnouncePending">
+      <actions>
+        <do_for_each name="$K" in="player.entity.$MIC_State.$Contracts">
+          <do_if value="$K.$state == 'available' and not @$K.$announced">
+            <include_actions ref="CheckEligible"/>
+            <do_if value="$Eligible">
+              <include_actions ref="AnnounceContract"/>
+            </do_if>
+          </do_if>
+        </do_for_each>
+      </actions>
+    </library>
+
+    <!-- player.entity.$MIC_UI: plain strings and numbers only, so Lua never has to convert a faction,
+         ware, component or money value. Every open contract is listed with its $eligible flag (1/0);
+         the menu shows only eligible ones. Ends with raise_lua_event so an open menu redraws. -->
+    <library name="PublishUI">
+      <actions>
+        <set_value name="$List" exact="[]"/>
+        <do_for_each name="$K" in="player.entity.$MIC_State.$Contracts">
+          <do_if value="$K.$state == 'available' or $K.$state == 'active'">
+            <include_actions ref="CheckEligible"/>
+            <include_actions ref="DescribeContract"/>
+            <set_value name="$Row" exact="table[
+                $id          = $K.$id,
+                $faction     = $K.$faction.id,
+                $factionname = $K.$faction.knownname,
+                $category    = $K.$category,
+                $typename    = if $K.$category == 'resource' then 'Trade supply' else 'Ship delivery',
+                $state       = $K.$state,
+                $what        = $What,
+                $amount      = $K.$amount,
+                $paycr       = if $K.$payment then ($K.$payment / 1Cr)i else 0,
+                $paytext     = if $K.$payment then $K.$payment.formatted.default + ' Cr' else 'on delivery',
+                $destination = if $K.$destination then $K.$destination.knownname else '',
+                $sector      = if $K.$destination then $K.$destination.sector.knownname else '',
+                $minrep      = $K.$minrep,
+                $minrank     = $K.$minrank,
+                $rep         = $KRep,
+                $eligible    = if $Eligible then 1 else 0,
+                $expiresin   = ($K.$expires - player.age)i,
+                $offered     = if @$K.$offercue.exists then 1 else 0
+              ]"/>
+            <append_to_list name="$List" exact="$Row"/>
+          </do_if>
+        </do_for_each>
+        <set_value name="player.entity.$MIC_UI" exact="table[$updated = player.age, $contracts = $List, $testmode = if @player.entity.$MIC_State.$Settings.$TestMode == 1 then 1 else 0, $testminrep = @player.entity.$MIC_State.$Settings.$TestMinRep]"/>
+        <raise_lua_event name="'MIC.UIUpdated'"/>
+        <remove_value name="$List"/>
+        <remove_value name="$Row"/>
+      </actions>
+    </library>
+
+    <!-- ================================================================== -->
+    <!-- TICK: one faction per tick, round robin                            -->
+    <!-- ================================================================== -->
+    <cue name="Tick" checkinterval="60s" instantiate="true">
+      <conditions>
+        <check_value value="player.entity.$MIC_State?"/>
+      </conditions>
+      <actions>
+        <include_actions ref="SetDebugChances"/>
+        <debug_text text="'[MIC][TICK] age=%s queue=%s contracts=%s cycle=%s'.[player.age, player.entity.$MIC_State.$ScanQueue.count, player.entity.$MIC_State.$Contracts.count, player.entity.$MIC_State.$Cycle]" filter="error" chance="$DbgV"/>
+        <include_actions ref="ExpireContracts"/>
+
+        <set_value name="$LocalDone" exact="false"/>
+        <do_if value="@player.entity.$MIC_State.$Settings.$TestMode == 1 and @player.entity.$MIC_State.$Settings.$TestLocalFirst == 1 and player.sector">
+          <do_if value="@player.entity.$MIC_State.$TestLocalSector != player.sector">
+            <set_value name="player.entity.$MIC_State.$TestLocalSector" exact="player.sector"/>
+            <set_value name="$LF" exact="player.sector.owner"/>
+            <do_if value="not $LF">
+              <debug_text text="'[MIC][TEST] entered %s: no owner, nothing to scan locally'.[player.sector.knownname]" filter="error" chance="$DbgI"/>
+            </do_if>
+            <do_elseif value="not @global.$FactionManagers.{$LF} or not $LF.isactive or player.entity.$MIC_State.$Settings.$ExcludedFactions.indexof.{$LF.id}">
+              <debug_text text="'[MIC][TEST] entered %s (owner %s): owner is not an eligible MIC faction'.[player.sector.knownname, $LF.id]" filter="error" chance="$DbgI"/>
+            </do_elseif>
+            <do_else>
+              <debug_text text="'[MIC][TEST] entered %s: scanning its owner %s now (local-first test option)'.[player.sector.knownname, $LF.id]" filter="error" chance="$DbgI"/>
+              <do_if value="player.entity.$MIC_State.$ScanQueue.indexof.{$LF}">
+                <remove_from_list name="player.entity.$MIC_State.$ScanQueue" exact="$LF"/>
+              </do_if>
+              <set_value name="$F" exact="$LF"/>
+              <include_actions ref="ScanFaction"/>
+              <set_value name="player.entity.$MIC_State.$CycleStats.$scanned" operation="add"/>
+              <set_value name="$LocalDone" exact="true"/>
+            </do_else>
+          </do_if>
+        </do_if>
+
+        <do_if value="not $LocalDone and player.entity.$MIC_State.$ScanQueue.count == 0">
+          <include_actions ref="CycleSummary"/>
+          <include_actions ref="RebuildScanQueue"/>
+        </do_if>
+
+        <do_if value="not $LocalDone and player.entity.$MIC_State.$ScanQueue.count gt 0">
+          <set_value name="$F" exact="player.entity.$MIC_State.$ScanQueue.{1}"/>
+          <remove_from_list name="player.entity.$MIC_State.$ScanQueue" exact="$F"/>
+          <do_if value="$F.isactive">
+            <include_actions ref="ScanFaction"/>
+            <set_value name="player.entity.$MIC_State.$CycleStats.$scanned" operation="add"/>
+          </do_if>
+          <do_else>
+            <debug_text text="'[MIC][TICK] skipped %s: faction no longer active'.[$F.id]" filter="error" chance="$DbgI"/>
+          </do_else>
+        </do_if>
+
+        <include_actions ref="AnnouncePending"/>
+        <include_actions ref="OfferNearby"/>
+        <include_actions ref="PublishUI"/>
+      </actions>
+    </cue>
+
+    <!-- ================================================================== -->
+    <!-- VANILLA MISSION OFFERS (M0b)                                        -->
+    <!-- ================================================================== -->
+    <!-- An eligible, available supply contract whose destination is in the player's sector becomes a vanilla
+         mission offer (shown in the Mission Offers list like any generic mission). One offer per contract.
+         The offer disappears when the player leaves the sector (vanilla RemoveOnSectorChange) and is
+         offered again on the next tick after the player returns. -->
+    <library name="OfferNearby">
+      <actions>
+        <do_if value="player.sector">
+          <do_for_each name="$K" in="player.entity.$MIC_State.$Contracts">
+            <do_if value="$K.$state == 'available' and $K.$category == 'resource' and not @$K.$offercue.exists and @$K.$destination.exists">
+              <do_if value="$K.$destination.sector == player.sector">
+                <include_actions ref="CheckEligible"/>
+                <do_if value="$Eligible">
+                  <debug_text text="'[MIC][OFFER] #%s: player is in %s, creating a vanilla mission offer at %s'.[$K.$id, player.sector.knownname, $K.$destination.knownname]" filter="error" chance="$DbgI"/>
+                  <signal_cue_instantly cue="SpawnOffer" param="$K"/>
+                </do_if>
+              </do_if>
+            </do_if>
+          </do_for_each>
+        </do_if>
+      </actions>
+    </library>
+
+    <!-- One instance per offer. Structure copied from x4ep1_war_subscriptions.xml (Supply_Factory__Standard_Create_GM):
+         a ref cue that starts the generic mission, plus an instantiated report cue the mission writes
+         static.$FeedbackValue / static.$EndFeedbackValue into. Parameters copied from
+         gm_largesupply.xml GenerateGenericMission_Variant_1_Ref. -->
+    <cue name="SpawnOffer" instantiate="true" namespace="this">
+      <conditions>
+        <event_cue_signalled/>
+      </conditions>
+      <actions>
+        <set_value name="$K" exact="event.param"/>
+        <set_value name="$K.$offercue" exact="this"/>
+        <set_value name="$K.$offercancel" exact="SpawnOffer_Cancel" comment="this instance's own child cue"/>
+        <set_value name="$Station" exact="$K.$destination"/>
+        <set_value name="$Supply" exact="[table[$amount = $K.$amount, $delivered = 0, $ware = $K.$ware]]"/>
+        <set_value name="$MissionLevel" exact="if $K.$payment ge 1000000Cr then 6 else 3"/>
+        <include_actions ref="SetDebugChances"/>
+      </actions>
+      <cues>
+        <cue name="SpawnOffer_Ref" ref="md.GM_LargeSupply.Start">
+          <param name="OfferObject"          value="$Station"/>
+          <param name="MissionLevel"         value="$MissionLevel"/>
+          <param name="Difficulty"           value="level.medium"/>
+          <param name="RemoveOnSectorChange" value="true"/>
+          <param name="BBSSpace"             value="$Station.sector"/>
+          <param name="Page"                 value="1773100"/>
+          <param name="TextOffset"           value="100"/>
+          <param name="StationSpace"         value="$Station.sector"/>
+          <param name="StationSupply"        value="$Supply"/>
+          <param name="Faction"              value="$K.$faction"/>
+          <param name="RewardCr"             value="$K.$payment"/>
+          <param name="GenerateReward"       value="false" comment="pay exactly the MIC premium, no extra mod or seminar reward"/>
+          <param name="CancelOfferCue"       value="SpawnOffer_Cancel"/>
+          <param name="ReportSignalCue"      value="SpawnOffer_Report"/>
+        </cue>
+
+        <!-- Completed by ExpireContracts when the contract expires while its offer is still up. -->
+        <cue name="SpawnOffer_Cancel">
+          <conditions>
+            <event_cue_signalled/>
+          </conditions>
+        </cue>
+
+        <cue name="SpawnOffer_Report" instantiate="true">
+          <conditions>
+            <event_cue_signalled/>
+          </conditions>
+          <actions>
+            <include_actions ref="SetDebugChances"/>
+            <!-- $K is SpawnOffer's namespace variable (this cue shares that namespace), as in vanilla MM__Standard_GM_Event -->
+            <do_if value="@static.$EndFeedbackValue">
+              <set_value name="$Fb" exact="static.$EndFeedbackValue"/>
+              <debug_text text="'[MIC][OFFER] #%s mission ended: %s %s (%s)'.[$K.$id, $Fb.$type, $Fb.$ID, $Fb.$text]" filter="error" chance="$DbgI"/>
+              <set_value name="$K.$offercue" exact="null"/>
+              <do_if value="$Fb.$type == 'success'">
+                <include_actions ref="CompleteContract"/>
+              </do_if>
+              <do_elseif value="$K.$state == 'active'">
+                <!-- accepted, then failed or aborted: the faction offers it again while it has not expired -->
+                <set_value name="$K.$state" exact="'available'"/>
+                <debug_text text="'[MIC][OFFER] #%s back to available after %s'.[$K.$id, $Fb.$ID]" filter="error" chance="$DbgI"/>
+              </do_elseif>
+              <include_actions ref="PublishUI"/>
+              <cancel_cue cue="namespace"/>
+            </do_if>
+            <do_elseif value="@static.$FeedbackValue">
+              <set_value name="$Fb" exact="static.$FeedbackValue"/>
+              <debug_text text="'[MIC][OFFER] #%s event: %s'.[$K.$id, $Fb.$ID]" filter="error" chance="$DbgI"/>
+              <do_if value="$Fb.$ID == '$MISSION_ACCEPTED'">
+                <set_value name="$K.$state" exact="'active'"/>
+                <set_value name="$K.$accepted" exact="player.age"/>
+                <include_actions ref="PublishUI"/>
+              </do_if>
+            </do_elseif>
+          </actions>
+        </cue>
+      </cues>
+    </cue>
+
+    <!-- in: $K. The mission already paid $K.$payment (reward_player in gm_largesupply), so only bookkeeping here. -->
+    <library name="CompleteContract">
+      <actions>
+        <set_value name="$K.$state" exact="'completed'"/>
+        <set_value name="$K.$completed" exact="player.age"/>
+        <set_value name="$KFS" exact="player.entity.$MIC_State.$Factions.{'$' + $K.$faction.id}"/>
+        <set_value name="$KFS.$points" exact="$KFS.$points + $K.$points"/>
+        <set_value name="$OldRank" exact="$KFS.$rank"/>
+        <set_value name="$Thresholds" exact="player.entity.$MIC_State.$Settings.$RankPoints"/>
+        <do_all exact="$Thresholds.count" counter="$i">
+          <do_if value="$KFS.$points ge $Thresholds.{$i}">
+            <set_value name="$KFS.$rank" exact="$i"/>
+          </do_if>
+        </do_all>
+        <remove_from_list name="player.entity.$MIC_State.$Contracts" exact="$K"/>
+        <append_to_list name="player.entity.$MIC_State.$History" exact="$K"/>
+        <debug_text text="'[MIC][DONE] #%s completed for %s: +%s points (now %s), rank %s -> %s'.[$K.$id, $K.$faction.id, $K.$points, $KFS.$points, $OldRank, $KFS.$rank]" filter="error" chance="$DbgI"/>
+        <do_if value="$KFS.$rank gt $OldRank">
+          <show_notification text="['Military-Industrial Complex', '%s: contractor rank %s'.[$K.$faction.knownname, $KFS.$rank]]" sound="notification_generic"/>
+          <write_to_logbook category="general" title="'[MIC] Contractor rank raised'" text="'%s now lists you as a rank %s contractor (%s procurement points).'.[$K.$faction.knownname, $KFS.$rank, $KFS.$points]" faction="$K.$faction"/>
+        </do_if>
+      </actions>
+    </library>
+
+    <!-- Runs when the queue empties: one summary per full pass, to debug.txt AND the logbook (visible in play). -->
+    <library name="CycleSummary">
+      <actions>
+        <set_value name="$S" exact="player.entity.$MIC_State"/>
+        <do_if value="$S.$CycleStats.$scanned gt 0">
+          <set_value name="$Open" exact="0"/>
+          <set_value name="$Visible" exact="0"/>
+          <set_value name="$ByCat" exact="table[$resource = 0, $replenish = 0]"/>
+          <do_for_each name="$K" in="$S.$Contracts">
+            <do_if value="$K.$state == 'available'">
+              <set_value name="$Open" operation="add"/>
+              <set_value name="$ByCat.{'$' + $K.$category}" operation="add"/>
+              <include_actions ref="CheckEligible"/>
+              <do_if value="$Eligible"><set_value name="$Visible" operation="add"/></do_if>
+            </do_if>
+          </do_for_each>
+          <set_value name="$Line" exact="'Cycle %s done in %ss: %s factions scanned, %s new contracts, %s expired. Open offers: %s (resource %s, replenish %s), %s visible to the player.'.[$S.$Cycle, (player.age - $S.$CycleStats.$started)i, $S.$CycleStats.$scanned, $S.$CycleStats.$new, $S.$CycleStats.$expired, $Open, $ByCat.$resource, $ByCat.$replenish, $Visible]"/>
+          <debug_text text="'[MIC][CYCLE] ' + $Line" filter="error" chance="$DbgI"/>
+          <!-- the player-facing report counts only what the player can see -->
+          <write_to_logbook category="general" title="'[MIC] Procurement cycle report'" text="'%s procurement contracts are open to you. Open the Military-Industrial Complex menu on the top bar for details.'.[$Visible]"/>
+          <do_if value="$S.$CycleStats.$new == 0 and $S.$Cycle ge 2">
+            <debug_text text="'[MIC][WARN] cycle %s produced 0 contracts - check [SHORT]/[MIL] lines and the thresholds'.[$S.$Cycle]" filter="error"/>
+          </do_if>
+        </do_if>
+        <set_value name="$S.$Cycle" operation="add"/>
+        <set_value name="$S.$CycleStats" exact="table[$scanned = 0, $new = 0, $expired = 0, $started = player.age]"/>
+        <remove_value name="$S"/>
+      </actions>
+    </library>
+
+    <!-- Eligible = has a faction manager, active, not excluded, owns at least one station. -->
+    <library name="RebuildScanQueue">
+      <actions>
+        <set_value name="$Queue" exact="[]"/>
+        <do_if value="global.$FactionManagers?">
+          <set_value name="$Ids" exact="''"/>
+          <do_for_each name="$Cand" in="global.$FactionManagers.keys.list">
+            <do_if value="player.entity.$MIC_State.$Settings.$ExcludedFactions.indexof.{$Cand.id}">
+              <debug_text text="'[MIC][QUEUE]   %s: excluded by setting'.[$Cand.id]" filter="error" chance="$DbgV"/>
+            </do_if>
+            <do_elseif value="not $Cand.isactive">
+              <debug_text text="'[MIC][QUEUE]   %s: inactive'.[$Cand.id]" filter="error" chance="$DbgV"/>
+            </do_elseif>
+            <do_else>
+              <append_to_list name="$Queue" exact="$Cand"/>
+              <set_value name="$Ids" exact="$Ids + $Cand.id + ' '"/>
+            </do_else>
+          </do_for_each>
+          <debug_text text="'[MIC][QUEUE] cycle %s: %s eligible of %s managed factions: %s'.[player.entity.$MIC_State.$Cycle, $Queue.count, global.$FactionManagers.keys.count, $Ids]" filter="error" chance="$DbgI"/>
+        </do_if>
+        <do_else>
+          <debug_text text="'[MIC][WARN] global.$FactionManagers is missing - no factions to scan'" filter="error"/>
+        </do_else>
+        <set_value name="player.entity.$MIC_State.$ScanQueue" exact="$Queue"/>
+        <do_if value="$Queue.count == 0">
+          <debug_text text="'[MIC][WARN] scan queue is empty after rebuild'" filter="error"/>
+        </do_if>
+      </actions>
+    </library>
+
+    <!-- ================================================================== -->
+    <!-- SCAN ONE FACTION                                                    -->
+    <!-- ================================================================== -->
+    <library name="ScanFaction">
+      <actions>
+        <include_actions ref="GetFactionState"/>
+        <set_value name="$Set" exact="player.entity.$MIC_State.$Settings"/>
+
+        <!-- budget regenerates per scan, capped -->
+        <set_value name="$BudgetBefore" exact="$FS.$budget"/>
+        <set_value name="$FS.$budget" exact="$FS.$budget + $Set.$BudgetRegenPerScan"/>
+        <do_if value="$FS.$budget gt $Set.$BudgetCap">
+          <set_value name="$FS.$budget" exact="$Set.$BudgetCap"/>
+        </do_if>
+
+        <!-- ===== stations and resource shortages ===== -->
+        <find_station_by_true_owner name="$Stations" faction="$F" space="player.galaxy" multiple="true"/>
+        <set_value name="$Short" exact="table[]" comment="ware -> table[$units, $station, $worstpct]"/>
+        <set_value name="$LocalShort" exact="table[]" comment="TEST: ware -> the single most short station in player.sector, with that station's own shortfall"/>
+        <do_for_each name="$St" in="$Stations">
+          <do_for_each name="$W" in="$St.resources.pure.list">
+            <set_value name="$Target" exact="$St.cargo.{$W}.target"/>
+            <do_if value="$Target gt 0">
+              <set_value name="$Have" exact="$St.cargo.{$W}.count"/>
+              <set_value name="$Pct" exact="($Have * 100) / $Target"/>
+              <do_if value="$Pct lt $Set.$ShortagePercent">
+                <do_if value="not $Short.{$W}?">
+                  <set_value name="$Short.{$W}" exact="table[$units = 0, $station = $St, $worstpct = 101]"/>
+                </do_if>
+                <set_value name="$Short.{$W}.$units" exact="$Short.{$W}.$units + ($Target - $Have)"/>
+                <do_if value="$Pct lt $Short.{$W}.$worstpct">
+                  <set_value name="$Short.{$W}.$worstpct" exact="$Pct"/>
+                  <set_value name="$Short.{$W}.$station" exact="$St"/>
+                </do_if>
+                <do_if value="$St.sector == player.sector">
+                  <do_if value="not $LocalShort.{$W}? or ($Target - $Have) gt $LocalShort.{$W}.$units">
+                    <set_value name="$LocalShort.{$W}" exact="table[$units = $Target - $Have, $station = $St, $worstpct = $Pct]"/>
+                  </do_if>
+                </do_if>
+              </do_if>
+            </do_if>
+          </do_for_each>
+        </do_for_each>
+        <set_value name="$FS.$shortages" exact="$Short"/>
+        <do_if value="$Stations.count == 0">
+          <debug_text text="'[MIC][WARN] %s is eligible but owns 0 stations'.[$F.id]" filter="error"/>
+        </do_if>
+        <!-- verbose: every short ware with its worst station -->
+        <do_for_each name="$W" valuename="$Info" in="$Short">
+          <debug_text text="'[MIC][SHORT]   %s %s: %s units short, worst %s percent at %s (%s)'.[$F.id, $W.id, $Info.$units, $Info.$worstpct, @$Info.$station.knownname, @$Info.$station.sector.knownname]" filter="error" chance="$DbgV"/>
+        </do_for_each>
+
+        <!-- ===== military strength snapshot (weights from vanilla factionlogic) ===== -->
+        <find_ship_by_true_owner name="$Mil" faction="$F" primarypurpose="purpose.fight" space="player.galaxy" multiple="true"/>
+        <set_value name="$Counts" exact="table[$s = 0, $m = 0, $l = 0, $xl = 0]"/>
+        <do_for_each name="$Sh" in="$Mil">
+          <do_if value="$Sh.isclass.ship_xl"><set_value name="$Counts.$xl" operation="add"/></do_if>
+          <do_elseif value="$Sh.isclass.ship_l"><set_value name="$Counts.$l" operation="add"/></do_elseif>
+          <do_elseif value="$Sh.isclass.ship_m"><set_value name="$Counts.$m" operation="add"/></do_elseif>
+          <do_elseif value="$Sh.isclass.ship_s"><set_value name="$Counts.$s" operation="add"/></do_elseif>
+        </do_for_each>
+        <set_value name="$Strength" exact="$Counts.$s * 5 + $Counts.$m * 8 + $Counts.$l * 35 + $Counts.$xl * 75"/>
+        <debug_text text="'[MIC][MIL]   %s: %s fight ships, strength %s (previous %s), was S/M/L/XL=%s/%s/%s/%s'.[$F.id, $Mil.count, $Strength, $FS.$strength, @$FS.$classcounts.$s, @$FS.$classcounts.$m, @$FS.$classcounts.$l, @$FS.$classcounts.$xl]" filter="error" chance="$DbgV"/>
+
+        <!-- ===== enemies (who objects to military contracts) ===== -->
+        <get_factions_by_relation result="$Enemies" relation="enemy" faction="$F"/>
+        <set_value name="$Objectors" exact="[]"/>
+        <set_value name="$EnemyIds" exact="''"/>
+        <do_for_each name="$E" in="$Enemies">
+          <set_value name="$EnemyIds" exact="$EnemyIds + $E.id + ' '"/>
+          <do_if value="$E.isactive and not player.entity.$MIC_State.$Settings.$ExcludedFactions.indexof.{$E.id}">
+            <append_to_list name="$Objectors" exact="$E"/>
+          </do_if>
+        </do_for_each>
+        <debug_text text="'[MIC][WAR]   %s enemies (all): %s| military objectors (would object to warship contracts; excludes excluded factions): %s'.[$F.id, $EnemyIds, $Objectors.count]" filter="error" chance="$DbgV"/>
+        <set_value name="$Tier" exact="1"/>
+        <include_actions ref="GetRepRequirement"/>
+        <debug_text text="'[MIC][SCAN]  %s: player rep %s (raw %s), budget %s -> %s'.[$F.id, $RepNow, $F.relationto.{faction.player}, $BudgetBefore.formatted.default, $FS.$budget.formatted.default]" filter="error" chance="$DbgV"/>
+
+        <debug_text chance="$DbgI" text="'[MIC][SCAN] %s: stations=%s shortwares=%s strength=%s (was %s) S/M/L/XL=%s/%s/%s/%s military-objectors=%s budget=%s'.[$F.id, $Stations.count, $Short.keys.count, $Strength, $FS.$strength, $Counts.$s, $Counts.$m, $Counts.$l, $Counts.$xl, $Objectors.count, $FS.$budget.formatted.default]" filter="error"/>
+
+        <!-- ===== generate contracts ===== -->
+        <include_actions ref="CountAvailable"/>
+        <do_if value="$Available lt $Set.$MaxAvailablePerFaction">
+          <include_actions ref="GenerateReplenishment"/>
+        </do_if>
+        <include_actions ref="CountAvailable"/>
+        <do_if value="$Available lt $Set.$MaxAvailablePerFaction">
+          <include_actions ref="GenerateResourceContract"/>
+        </do_if>
+
+        <set_value name="$FS.$strength" exact="$Strength"/>
+        <set_value name="$FS.$classcounts" exact="$Counts"/>
+        <set_value name="$FS.$lastscan" exact="player.age"/>
+      </actions>
+    </library>
+
+    <!-- in: $F. out: $Available -->
+    <library name="CountAvailable">
+      <actions>
+        <set_value name="$Available" exact="0"/>
+        <do_for_each name="$K" in="player.entity.$MIC_State.$Contracts">
+          <do_if value="$K.$faction == $F and $K.$state == 'available'">
+            <set_value name="$Available" operation="add"/>
+          </do_if>
+        </do_for_each>
+      </actions>
+    </library>
+
+    <!-- A contract per scan at most: the ware with the most units short, if not already contracted. -->
+    <library name="GenerateResourceContract">
+      <actions>
+        <set_value name="$Pool" exact="$Short"/>
+        <do_if value="@$Set.$TestMode == 1 and @$Set.$TestLocalFirst == 1">
+          <do_if value="$LocalShort.keys.count gt 0">
+            <set_value name="$Pool" exact="$LocalShort"/>
+            <debug_text text="'[MIC][TEST] %s: choosing from %s short ware(s) at its stations in %s (local-first test option)'.[$F.id, $LocalShort.keys.count, player.sector.knownname]" filter="error" chance="$DbgI"/>
+          </do_if>
+          <do_elseif value="player.sector and player.sector.owner == $F">
+            <debug_text text="'[MIC][TEST] %s: no station in %s is below %s percent of any resource, using the faction-wide shortage list'.[$F.id, player.sector.knownname, $Set.$ShortagePercent]" filter="error" chance="$DbgI"/>
+          </do_elseif>
+        </do_if>
+        <set_value name="$BestWare" exact="null"/>
+        <set_value name="$BestUnits" exact="0"/>
+        <do_for_each name="$W" valuename="$Info" in="$Pool">
+          <set_value name="$Dup" exact="false"/>
+          <do_for_each name="$K" in="player.entity.$MIC_State.$Contracts">
+            <do_if value="$K.$faction == $F and @$K.$ware == $W and ($K.$state == 'available' or $K.$state == 'active')">
+              <set_value name="$Dup" exact="true"/>
+            </do_if>
+          </do_for_each>
+          <do_if value="not $Dup and $Info.$units gt $BestUnits">
+            <set_value name="$BestWare" exact="$W"/>
+            <set_value name="$BestUnits" exact="$Info.$units"/>
+          </do_if>
+        </do_for_each>
+
+        <do_if value="not $BestWare">
+          <debug_text text="'[MIC][GEN-RES] %s: no contract - %s short wares, none without an open contract'.[$F.id, $Pool.keys.count]" filter="error" chance="$DbgV"/>
+        </do_if>
+        <do_if value="$BestWare">
+          <set_value name="$Units" exact="if $BestUnits gt $Set.$ResourceMaxUnits then $Set.$ResourceMaxUnits else $BestUnits"/>
+          <set_value name="$Premium" exact="($Units * $BestWare.averageprice * $Set.$ResourcePremiumPercent / 100) * $Set.$PaymentMultiplier / 100"/>
+          <debug_text text="'[MIC][GEN-RES] %s: candidate %s, short %s, contract %s units x avg %s x %s percent premium x %s percent mult = %s'.[$F.id, $BestWare.id, $BestUnits, $Units, $BestWare.averageprice.formatted.default, $Set.$ResourcePremiumPercent, $Set.$PaymentMultiplier, $Premium.formatted.default]" filter="error" chance="$DbgV"/>
+          <do_if value="$Premium le 0Cr">
+            <debug_text text="'[MIC][WARN] %s: premium for %s computed as %s (averageprice %s) - check money arithmetic'.[$F.id, $BestWare.id, $Premium, $BestWare.averageprice]" filter="error"/>
+          </do_if>
+          <do_if value="$Premium le $FS.$budget">
+            <set_value name="$Tier" exact="2" comment="strategic resource contract"/>
+            <include_actions ref="GetRepRequirement"/>
+            <set_value name="$Contract" exact="table[
+                $id = player.entity.$MIC_State.$NextId,
+                $faction = $F,
+                $category = 'resource',
+                $state = 'available',
+                $created = player.age,
+                $expires = player.age + $Set.$OfferLifetime,
+                $ware = $BestWare,
+                $amount = $Units,
+                $delivered = 0,
+                $destination = $Pool.{$BestWare}.$station,
+                $payment = $Premium,
+                $paymentnote = 'premium on top of the normal sale price',
+                $tier = $Tier,
+                $minrep = $RepRequired,
+                $minrank = 0,
+                $points = 10 + ($Premium / 100000Cr)i,
+                $objectors = []
+              ]"/>
+            <include_actions ref="RegisterContract"/>
+          </do_if>
+          <do_else>
+            <debug_text chance="$DbgI" text="'[MIC][GEN-RES] %s cannot afford a %s contract (premium %s, budget %s)'.[$F.id, $BestWare.id, $Premium.formatted.default, $FS.$budget.formatted.default]" filter="error"/>
+          </do_else>
+        </do_if>
+      </actions>
+    </library>
+
+    <!-- Strength dropped by at least LossThresholdPercent since the last scan: ask for the class that dropped most. -->
+    <library name="GenerateReplenishment">
+      <actions>
+        <do_if value="$FS.$strength lt 0">
+          <debug_text text="'[MIC][GEN-REP] %s: first snapshot (strength %s), no comparison yet'.[$F.id, $Strength]" filter="error" chance="$DbgV"/>
+        </do_if>
+        <do_elseif value="$Strength ge $FS.$strength">
+          <debug_text text="'[MIC][GEN-REP] %s: no loss (strength %s -> %s)'.[$F.id, $FS.$strength, $Strength]" filter="error" chance="$DbgV"/>
+        </do_elseif>
+        <do_if value="$FS.$strength gt 0 and $Strength lt $FS.$strength">
+          <set_value name="$DropPct" exact="(($FS.$strength - $Strength) * 100) / $FS.$strength"/>
+          <debug_text text="'[MIC][GEN-REP] %s: strength %s -> %s, drop %s percent (threshold %s)'.[$F.id, $FS.$strength, $Strength, $DropPct, $Set.$LossThresholdPercent]" filter="error" chance="$DbgV"/>
+          <do_if value="$DropPct ge $Set.$LossThresholdPercent">
+            <!-- weighted drop per class -->
+            <set_value name="$Old" exact="$FS.$classcounts"/>
+            <set_value name="$Best" exact="null"/>
+            <set_value name="$BestLoss" exact="0"/>
+            <set_value name="$Weights" exact="table[$s = 5, $m = 8, $l = 35, $xl = 75]"/>
+            <do_for_each name="$Key" valuename="$Wt" in="$Weights">
+              <do_if value="$Old.{$Key}? and $Old.{$Key} gt $Counts.{$Key}">
+                <do_if value="($Old.{$Key} - $Counts.{$Key}) * $Wt gt $BestLoss">
+                  <set_value name="$Best" exact="$Key"/>
+                  <set_value name="$BestLoss" exact="($Old.{$Key} - $Counts.{$Key}) * $Wt"/>
+                </do_if>
+              </do_if>
+            </do_for_each>
+
+            <do_if value="not $Best">
+              <debug_text text="'[MIC][GEN-REP] %s: strength fell but no single class count fell (old S/M/L/XL=%s/%s/%s/%s)'.[$F.id, @$Old.$s, @$Old.$m, @$Old.$l, @$Old.$xl]" filter="error" chance="$DbgV"/>
+            </do_if>
+            <do_if value="$Best">
+              <set_value name="$Lost" exact="$Old.{$Best} - $Counts.{$Best}"/>
+              <set_value name="$Caps" exact="table[$s = 6, $m = 3, $l = 2, $xl = 1]"/>
+              <set_value name="$Want" exact="if $Lost gt $Caps.{$Best} then $Caps.{$Best} else $Lost"/>
+              <set_value name="$Tier" exact="if $Best == '$l' or $Best == '$xl' then 4 else 3"/>
+              <include_actions ref="GetRepRequirement"/>
+              <!-- objectors: every active enemy; severity grows with ship class -->
+              <set_value name="$Obj" exact="[]"/>
+              <do_for_each name="$E" in="$Objectors">
+                <append_to_list name="$Obj" exact="table[$faction = $E, $severity = $Weights.{$Best} * $Want]"/>
+              </do_for_each>
+              <set_value name="$Contract" exact="table[
+                  $id = player.entity.$MIC_State.$NextId,
+                  $faction = $F,
+                  $category = 'replenish',
+                  $state = 'available',
+                  $created = player.age,
+                  $expires = player.age + $Set.$OfferLifetime,
+                  $shipclass = $Best,
+                  $amount = $Want,
+                  $delivered = 0,
+                  $destination = $F.headquarters,
+                  $payment = null,
+                  $paymentnote = 'fleet value x multiplier on delivery (GM_GetExactFleet model, M0c)',
+                  $tier = $Tier,
+                  $minrep = $RepRequired,
+                  $minrank = if $Tier == 4 then 2 else 1,
+                  $points = $Weights.{$Best} * $Want,
+                  $droppct = $DropPct,
+                  $objectors = $Obj
+                ]"/>
+              <include_actions ref="RegisterContract"/>
+            </do_if>
+          </do_if>
+        </do_if>
+      </actions>
+    </library>
+
+    <!-- in: $Contract, $FS, $RepNow. Appends, reserves budget, logs. -->
+    <library name="RegisterContract">
+      <actions>
+        <append_to_list name="player.entity.$MIC_State.$Contracts" exact="$Contract"/>
+        <set_value name="player.entity.$MIC_State.$NextId" operation="add"/>
+        <set_value name="player.entity.$MIC_State.$CycleStats.$new" operation="add"/>
+        <do_if value="$Contract.$payment">
+          <set_value name="$FS.$budget" exact="$FS.$budget - $Contract.$payment"/>
+        </do_if>
+
+        <set_value name="$Contract.$announced" exact="false"/>
+        <set_value name="$Contract.$offercue" exact="null"/>
+
+        <set_value name="$K" exact="$Contract"/>
+        <include_actions ref="DescribeContract"/>
+        <include_actions ref="CheckEligible"/>
+        <set_value name="$Line" exact="'#%s %s [%s]: %s. Pay: %s. Needs rep +%s (you: %s), rank %s (you: %s). Objectors: %s'.[$K.$id, $F.knownname, $K.$category, $What, $Pay, $K.$minrep, $KRep, $K.$minrank, $KRank, $ObjText]"/>
+        <!-- debug.txt is the test instrument, so every contract is traced; the player only sees eligible ones -->
+        <debug_text text="'[MIC][NEW] ' + $Line + (if $Eligible then ' -> VISIBLE' else ' -> [HIDDEN] player does not meet the requirements')" filter="error" chance="$DbgI"/>
+        <debug_text text="'[MIC][NEW]   #%s budget left for %s: %s'.[$K.$id, $F.id, $FS.$budget.formatted.default]" filter="error" chance="$DbgV"/>
+        <do_if value="$Eligible">
+          <include_actions ref="AnnounceContract"/>
+        </do_if>
+      </actions>
+    </library>
+
+    <!-- available offers past their lifetime expire and refund their reservation -->
+    <library name="ExpireContracts">
+      <actions>
+        <do_for_each name="$K" in="player.entity.$MIC_State.$Contracts" reverse="true">
+          <do_if value="$K.$state == 'available' and player.age gt $K.$expires">
+            <do_if value="@$K.$offercue.exists and @$K.$offercancel.exists">
+              <!-- withdraw the vanilla offer: completing its CancelOfferCue makes md.GM_LargeSupply remove the offer
+                   and clean up itself; its 'removed' report then ends our SpawnOffer instance -->
+              <signal_cue cue="$K.$offercancel"/>
+              <debug_text text="'[MIC][OFFER] #%s expired while offered: offer withdrawn'.[$K.$id]" filter="error" chance="$DbgI"/>
+            </do_if>
+            <set_value name="$K.$state" exact="'expired'"/>
+            <do_if value="$K.$payment and player.entity.$MIC_State.$Factions.{'$' + $K.$faction.id}?">
+              <set_value name="player.entity.$MIC_State.$Factions.{'$' + $K.$faction.id}.$budget" exact="player.entity.$MIC_State.$Factions.{'$' + $K.$faction.id}.$budget + $K.$payment"/>
+            </do_if>
+            <remove_from_list name="player.entity.$MIC_State.$Contracts" exact="$K"/>
+            <append_to_list name="player.entity.$MIC_State.$History" exact="$K"/>
+            <set_value name="player.entity.$MIC_State.$CycleStats.$expired" operation="add"/>
+            <debug_text text="'[MIC][EXPIRE] contract #%s (%s %s) expired unaccepted, refunded %s'.[$K.$id, $K.$faction.id, $K.$category, if $K.$payment then $K.$payment.formatted.default else 'n/a']" filter="error" chance="$DbgI"/>
+          </do_if>
+        </do_for_each>
+        <do_while value="player.entity.$MIC_State.$History.count gt 200">
+          <remove_value name="player.entity.$MIC_State.$History.{1}"/>
+        </do_while>
+      </actions>
+    </library>
+
+  </cues>
+</mdscript>

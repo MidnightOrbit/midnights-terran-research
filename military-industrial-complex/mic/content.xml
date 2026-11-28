@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Military-Industrial Complex (MIC) - prototype M0b.
+     save="0" while prototyping: the mod is not recorded as a save dependency, so a test save
+     still loads with it removed. Its globals and player.entity variables are still written
+     into the save (residue, not corruption). Revisit before ship transfer goes live (M0c).
+     The menu (ui/mic_menu.lua) is unsigned Lua: it needs Protected UI Mode OFF. The backend works without it. -->
+<content id="mic_procurement" version="2" name="Military-Industrial Complex (prototype)"
+         description="Government procurement contracts driven by the real state of the universe. PROTOTYPE M0b: contracts you qualify for appear in the MIC top-bar menu and as vanilla mission offers near their destination."
+         author="MIC" date="2026-11-28" enabled="1" save="0">
+  <dependency version="900" />
+</content>

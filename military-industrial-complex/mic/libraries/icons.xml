@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE icons SYSTEM "../../../libraries/icons.dtd" >
+<!-- Same form as the DLC icon files (e.g. extensions/ego_dlc_boron/libraries/icons.xml): a plain <icons> list,
+     texture path prefixed with the extension folder, ".tga" in the path backed by a gzipped DDS (.gz) on disk. -->
+<icons>
+  <icon name="mic_tlt" texture="extensions\mic\assets\textures\ui\mic\mic_tlt.tga" height="128" width="128"></icon>
+</icons>

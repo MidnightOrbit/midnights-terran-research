@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MIC text. Page 1773100, offsets laid out like vanilla page 30141 (gm_largesupply.xml GenerateTextTable):
+     offset+1 mission name, +2 description, +3 ware list ($SUPPLIES$), +4 objective ($SPACE$). -->
+<language id="44">
+  <page id="1773100" title="Military-Industrial Complex" descr="MIC procurement contracts" voice="no">
+    <t id="101">Procurement Contract</t>
+    <t id="102">Our procurement office has flagged a critical shortage. Deliver the wares below to our stations in this sector. You are paid the normal market price by the station for every unit you sell, and our procurement premium on completion.</t>
+    <t id="103">Required:\n$SUPPLIES$</t>
+    <t id="104">(Deliver:)Contracted wares to our stations in: $SPACE$</t>
+  </page>
+</language>

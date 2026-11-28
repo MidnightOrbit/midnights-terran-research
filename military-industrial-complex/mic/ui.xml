@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Loads the MIC menu into the "menus" environment, as sn_mod_support_apis/ui.xml does for its files.
+     Depends on ego_detailmonitor so Helper (and Helper.topLevelMenus) exists before mic_menu.lua runs. -->
+<addon name="mic_procurement" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../core/coreaddon.xsd">
+  <environment type="menus">
+    <file name="ui/mic_menu.lua" />
+    <dependency name="ego_detailmonitor" />
+  </environment>
+</addon>
